@@ -28,6 +28,11 @@ cd example-project/
 cp .env.example .env
 ```
 
+Se as imagens não estiverem funcionando execute
+```sh
+php artisan storage:link
+```
+
 
 Atualize as variáveis de ambiente do arquivo .env
 ```dosini
