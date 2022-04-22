@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Image;
-use Faker\Provider\Uuid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,19 +28,17 @@ class ImageController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->all();
+        if ($request->image == null) {
+            return response()->json(['message' => 'Your request have a empty body']);
+        }
+
+        $requestData = $request->all();
 
         if ($request->image->isValid()) {
-            $nameFile = Uuid::uuid() . '.' . $request->image->getClientOriginalExtension();
-
-            $file = $request->image->storeAs('images', $nameFile);
-
-            $data['image'] = $file;
-            $data['name'] = $nameFile;
-            $data['path'] = $file;
+            $requestData = $this->imageNameFormatter($request->image);
         };
 
-        $createdImage = Image::create($data);
+        $createdImage = Image::create($requestData);
 
         return response()->json([
             'image' => $createdImage,
@@ -75,23 +72,19 @@ class ImageController extends Controller
             return response()->json(['message' => 'No such image with this id']);
         };
 
-        $data = $request->all();
+        if ($request->image == null) {
+            return response()->json(['message' => 'Your request have a empty body']);
+        }
+
+        $requestData = $request->all();
 
         if ($request->image && $request->image->isValid()) {
-            if (Storage::exists($image->path)) {
-                Storage::delete($image->path);
-            }
+            $this->findAndDestroyFile($image->path);
 
-            $nameFile = Uuid::uuid() . '.' . $request->image->getClientOriginalExtension();
-
-            $file = $request->image->storeAs('images', $nameFile);
-
-            $data['image'] = $file;
-            $data['name'] = $nameFile;
-            $data['path'] = $file;
+            $requestData = $this->imageNameFormatter($request->image);
         };
 
-        $image->update($data);
+        $image->update($requestData);
 
         $updatedImage = $image->refresh();
 
@@ -116,14 +109,32 @@ class ImageController extends Controller
             ]);
         };
 
-        if (Storage::exists($image->path)) {
-            Storage::delete($image->path);
-        }
+        $this->findAndDestroyFile($image->path);
 
         $image->delete();
 
         return response()->json([
             'message' => 'Image successful deleted'
         ]);
+    }
+
+    private function findAndDestroyFile($imagePath)
+    {
+        if (Storage::exists($imagePath)) {
+            Storage::delete($imagePath);
+        }
+    }
+
+    private function imageNameFormatter($image)
+    {
+        $nameFile = $image->hashName();
+
+        $file = $image->storeAs('images', $nameFile);
+
+        $formattedData['image'] = $file;
+        $formattedData['name'] = $nameFile;
+        $formattedData['path'] = $file;
+
+        return $formattedData;
     }
 }
