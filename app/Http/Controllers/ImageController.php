@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\Storage;
 
 class ImageController extends Controller
 {
+    private $model;
+
+    public function __construct(Image $image)
+    {
+        $this->model = $image;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +22,7 @@ class ImageController extends Controller
      */
     public function index()
     {
-        $images = Image::all();
+        $images = $this->model->all();
 
         return response()->json($images);
     }
@@ -29,7 +36,9 @@ class ImageController extends Controller
     public function store(Request $request)
     {
         if ($request->image == null) {
-            return response()->json(['message' => 'Your request have a empty body']);
+            return response()->json([
+                'message' => 'Your request have a empty body'
+            ], 400);
         }
 
         $requestData = $request->all();
@@ -38,12 +47,9 @@ class ImageController extends Controller
             $requestData = $this->imageNameFormatter($request->image);
         };
 
-        $createdImage = Image::create($requestData);
+        $createdImage = $this->model->create($requestData);
 
-        return response()->json([
-            'image' => $createdImage,
-            'link' => url("storage/{$createdImage->path}")
-        ]);
+        return response()->json($createdImage, 201);
     }
 
     /**
@@ -54,7 +60,9 @@ class ImageController extends Controller
      */
     public function show($id)
     {
-        $image = Image::find($id);
+        if (!$image = $this->model->find($id)) {
+            return response()->json(['message' => 'No such image with this id'], 400);
+        };
 
         return response()->json($image);
     }
@@ -68,12 +76,12 @@ class ImageController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!$image = Image::find($id)) {
-            return response()->json(['message' => 'No such image with this id']);
+        if (!$image = $this->model->find($id)) {
+            return response()->json(['message' => 'No such image with this id'], 400);
         };
 
         if ($request->image == null) {
-            return response()->json(['message' => 'Your request have a empty body']);
+            return response()->json(['message' => 'Your request have a empty body'], 400);
         }
 
         $requestData = $request->all();
@@ -88,11 +96,7 @@ class ImageController extends Controller
 
         $updatedImage = $image->refresh();
 
-        return response()->json([
-            'message' => 'Image successful updated!',
-            'image' => $updatedImage,
-            'link' => url("storage/{$updatedImage->path}")
-        ]);
+        return response()->json($updatedImage);
     }
 
     /**
@@ -103,10 +107,10 @@ class ImageController extends Controller
      */
     public function destroy($id)
     {
-        if (!$image = Image::find($id)) {
+        if (!$image = $this->model->find($id)) {
             return response()->json([
                 'message' => 'No such image with this ID'
-            ]);
+            ], 400);
         };
 
         $this->findAndDestroyFile($image->path);
