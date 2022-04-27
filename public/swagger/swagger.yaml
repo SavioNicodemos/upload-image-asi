@@ -1,55 +1,165 @@
 swagger: '2.0'
 info:
-  description: LPT APis
   version: 1.0.0
-  title: LPT Frontend API's
+  title: API to store images
+  description: Upload image API
+  contact:
+    name: Savio Nicodemos
+    url: https://github.com/SavioNicodemos
+    email: saviogomes_182@hotmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
 basePath: /api/
 tags:
-  - name: Category
-    description: Manage Category
+  - name: Image
+    description: Manage the Images
 
 paths:
-  /categories:
+  /upload:
     get:
       tags:
-        - Category
-      summary: Manage Category
-      description: 'Manage Category with this API'
-      operationId: category
-      consumes:
-        - application/json
+        - Image
+      summary: List all images
+      description: 'Get an array with all the images saved.'
+      operationId: getAllImages
       produces:
         - application/json
       responses:
-        '200':
-          description: successful operation
-        '400':
-          description: Bad request
+        200:
+          description: Successfully all images image
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Image'
+        400:
+          $ref: '#/responses/400Error'
+
     post:
       tags:
-        - Category
-      summary: Create Category
-      description: 'Create Category with this API'
-      operationId: createCategory
+        - Image
+      summary: Uploads an image
+      description: 'Create an image with this API'
+      operationId: createImage
       consumes:
-        - application/json
+        - multipart/form-data
       produces:
         - application/json
       parameters:
-        - in: query
-          name: name
+        - $ref: '#/parameters/ImageForm'
+      responses:
+        201:
+          description: Successfully saved an image
+          schema:
+            $ref: '#/definitions/Image'
+        400:
+          $ref: '#/responses/400Error'
+
+  /upload/{imageId}:
+    get:
+      tags:
+        - Image
+      summary:
+        - Get a single image
+      description: Obtain information about an image from its unique ID
+      operationId: showImage
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/ImageId'
+      responses:
+        200:
+          description: Successfully returned an image
+          schema:
+            $ref: '#/definitions/Image'
+        400:
+          $ref: '#/responses/400Error'
+
+    post:
+      tags:
+        - Image
+      summary: Updates an image
+      description: 'Updates an image from its unique ID'
+      operationId: updateImage
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - $ref: '#/parameters/ImageId'
+        - $ref: '#/parameters/ImageForm'
+        - in: formData
+          name: _method
           type: string
+          default: PUT
+          description: The method
           required: true
       responses:
-        '200':
-          description: successful operation
-        '400':
-          description: Bad request
-      security:
-        - api_key: []
+        200:
+          description: Successfully updated an image
+          schema:
+            $ref: '#/definitions/Image'
+        400:
+          $ref: '#/responses/400Error'
 
-securityDefinitions:
-  api_key:
-    type: apiKey
-    name: Authorization
-    in: header
+    delete:
+      tags:
+        - Image
+      summary:
+        - Delete an image
+      description: Delete an image from its unique ID
+      operationId: deleteImage
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/ImageId'
+      responses:
+        200:
+          description: Successfully returned an image
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+        400:
+          $ref: '#/responses/400Error'
+
+parameters:
+  ImageForm:
+    in: formData
+    name: image
+    type: file
+    description: The file to upload.
+    required: true
+  ImageId:
+    in: path
+    name: imageId
+    type: number
+    description: The given ID from the image you wants to update
+    required: true
+
+definitions:
+  Image:
+    type: object
+    properties:
+      id:
+        type: number
+      name:
+        type: string
+      path:
+        type: string
+      created_at:
+        type: string
+      updated_at:
+        type: string
+
+responses:
+  400Error:
+    description: Invalid request
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
