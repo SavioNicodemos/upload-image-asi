@@ -2,26 +2,12 @@
 ### Passo a passo
 Clone Repositório
 ```sh
-git clone [:link] upload-image-asi
+git clone [:link] upload-image-laravel
 ```
 
 ```sh
-cd upload-image-asi/
+cd upload-image-laravel/
 ```
-
-
-Alterne para a branch laravel 8.x
-```sh
-git checkout laravel-9-com-php-8
-```
-
-
-Remova o versionamento
-```sh
-rm -rf .git/
-```
-
-
 Crie o Arquivo .env
 ```sh
 cd example-project/
@@ -81,4 +67,4 @@ php artisan key:generate
 
 
 Acesse o projeto
-[http://localhost:8180](http://localhost:8180)
+[http://localhost:8989](http://localhost:8989)
